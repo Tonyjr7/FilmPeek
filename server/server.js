@@ -2,23 +2,25 @@ import express from 'express';
 import connectDB from './config/db.config.js';
 
 import authRoutes from './routes/auth.js';
+import fetchData from './services/api.js';
 
 const app = express();
 const PORT = 5000;
 
 app.use(express.json());
 
-app.use("/api/auth", authRoutes);
+app.use('/api/auth', authRoutes);
 
-app.get("/", (req, res) => {
-    res.send("Home!!!");
+app.get('/', async (req, res) => {
+  const data = await fetchData('movie/popular?language=en-US&page=1');
+  res.json(data);
 });
 
 app.use((req, res) => {
-    res.status(404).json({ message: "Oops, 404 error" });
+  res.status(404).json({ message: 'Oops, 404 error' });
 });
 
-connectDB().then(db => {
+connectDB().then((db) => {
   app.listen(PORT, () => {
     console.log(`Server running on: http://127.0.0.1:${PORT}`);
   });
