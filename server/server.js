@@ -12,8 +12,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 
 app.get('/', async (req, res) => {
-  const data = await fetchData('movie/popular?language=en-US&page=1');
-  res.json(data);
+  res.status(200).json({ message: 'Home!!!' });
 });
 
 app.use((req, res) => {
