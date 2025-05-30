@@ -2,6 +2,7 @@ import express from 'express';
 import connectDB from './config/db.config.js';
 
 import authRoutes from './routes/auth.js';
+import moviesRoutes from './routes/movies.js';
 import fetchData from './services/api.js';
 
 const app = express();
@@ -10,6 +11,8 @@ const PORT = 5000;
 app.use(express.json());
 
 app.use('/api/auth', authRoutes);
+
+app.use('/movies', moviesRoutes);
 
 app.get('/', async (req, res) => {
   res.status(200).json({ message: 'Home!!!' });
