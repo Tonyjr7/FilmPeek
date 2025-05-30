@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 
 import { hashedPassword, matchPassword } from '../services/auth.js';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
+const JWT_SECRET = process.env.JWT_SECRET;
 
 export const signupUsers = async (req, res) => {
   try {
