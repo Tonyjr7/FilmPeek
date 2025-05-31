@@ -63,12 +63,84 @@ export const addMovieToFavorite = async (req, res) => {
       return res.status(400).json({ message: 'Movie already in your favorites' });
     }
 
-    await User.findByIdAndUpdate(req.userId, {
-      $addToSet: { favoriteMovies: movieId },
-    });
+    user.favoriteMovies.push(movieId);
+    await user.save();
 
     return res.status(201).json({ message: 'Movie added to favorite' });
   } catch (err) {
-    return res.status(400).json({ message: 'An error occurred', error: err.message });
+    return res.status(500).json({ message: 'An error occurred', error: err.message });
+  }
+};
+
+// fetch favorite movies
+export const fetchFavoriteMovies = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    const data = user.favoriteMovies;
+
+    return res.status(200).json({ message: 'Favorite movie fetched', data });
+  } catch (err) {
+    return res.status(500).json({ message: 'An error occured', error: err.message });
+  }
+};
+
+// create a watchlist
+export const createWatchlist = async (req, res) => {
+  const watchlistName = req.body.watchlistName;
+
+  if (!watchlistName) {
+    return res.status(400).json({ message: 'Please include a watchlist name' });
+  }
+
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const exist = user.watchLists.some((list) => list.name === watchListName);
+    if (exist) {
+      return res.status(400).json({ message: 'You already have this watchlist' });
+    }
+
+    user.watchLists.push({ name: watchlistName, movies: [] });
+    await user.save();
+
+    return res.status(201).json({ message: 'Watchlist created' });
+  } catch (err) {
+    return res.status(500).json({ message: 'An error occured', error: err.message });
+  }
+};
+
+// add movie to watchlist
+export const addMovieToWatchList = async (req, res) => {
+  const movieId = req.body.movieId;
+  const watchListId = req.body.watchlistId;
+
+  if (!movieId || !watchListId) {
+    return res.status(400).json({ message: 'Please include a movie and a WatchList' });
+  }
+
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const watchlist = user.watchLists.find((list) => list._id.toString() === watchListId);
+    if (!watchlist) {
+      return res.status(400).json({ message: 'Watchlist Not Found' });
+    }
+
+    if (watchlist.movies.includes(movieId)) {
+      return res.status(400).json({ message: 'Movie already in watchlist' });
+    }
+
+    watchlist.movies.push(movieId);
+    await user.save();
+
+    return res.status(200).json({ message: 'movie added to watchlist' });
+  } catch (err) {
+    return res.status(400).json({ message: 'An error occured', error: err.message });
   }
 };

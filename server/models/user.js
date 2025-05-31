@@ -6,9 +6,22 @@ const UserSchema = new mongoose.Schema(
     email: String,
     password: String,
     favoriteMovies: {
-      type: [Number],
+      type: [Number], // Just an array of TMDB IDs
       default: [],
     },
+
+    watchLists: [
+      {
+        name: {
+          type: String,
+          required: true,
+        },
+        movies: {
+          type: [Number], // TMDB movie IDs
+          default: [],
+        },
+      },
+    ],
   },
   { timestamps: true }
 );

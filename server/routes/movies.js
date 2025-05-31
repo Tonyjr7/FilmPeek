@@ -1,6 +1,9 @@
 import express from 'express';
 import {
   addMovieToFavorite,
+  addMovieToWatchList,
+  createWatchlist,
+  fetchFavoriteMovies,
   fetchMovieDetail,
   fetchPopularMovies,
   searchMovie,
@@ -12,6 +15,12 @@ const router = express.Router();
 
 // save a favorite movie
 router.post('/user/favorites', verifyToken, addMovieToFavorite);
+
+router.get('/user/favorites', verifyToken, fetchFavoriteMovies);
+
+router.post('/user/watchlist', verifyToken, createWatchlist);
+
+router.patch('/user/watchlist', verifyToken, addMovieToWatchList);
 
 // search for movies with a name or year
 router.get('/search', searchMovie);

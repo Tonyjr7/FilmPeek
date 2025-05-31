@@ -1,3 +1,4 @@
+// extractor for movie data
 export const simplifyMovieData = (movies) => {
   return movies.map((movie) => ({
     id: movie.id,
@@ -6,7 +7,7 @@ export const simplifyMovieData = (movies) => {
   }));
 };
 
-// extractor for movie data
+// extractor for movie details
 export const simplifyMovieDetails = (movie) => ({
   id: movie.id,
   title: movie.title || movie.original_title,
