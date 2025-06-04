@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import connectDB from './config/db.config.js';
 
 import authRoutes from './routes/auth.js';
@@ -6,6 +7,8 @@ import moviesRoutes from './routes/movies.js';
 
 const app = express();
 const PORT = 5000;
+
+app.use(cors());
 
 app.use(express.json());
 

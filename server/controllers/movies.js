@@ -16,6 +16,17 @@ export const fetchPopularMovies = async (req, res) => {
   }
 };
 
+// fetch trending movie
+export const fetchTrendingMovie = async (req, res) => {
+  try {
+    const movie = await fetchData('trending/movie/day?language=en-US');
+
+    return res.status(200).json(movie);
+  } catch (err) {
+    return res.status(500).json({ message: 'An error occured', error: err.message });
+  }
+};
+
 // fetch a movie details
 export const fetchMovieDetail = async (req, res) => {
   const movieId = req.params.id;
