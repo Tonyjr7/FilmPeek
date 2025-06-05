@@ -7,6 +7,7 @@ import {
   fetchFavoriteMovies,
   fetchMovieDetail,
   fetchPopularMovies,
+  fetchSimilarMovies,
   fetchTrendingMovie,
   fetchWatchlist,
   fetchWatchLists,
@@ -45,6 +46,9 @@ router.delete('/user/watchlist/:id', verifyToken, deleteWatchlist);
 
 // fetch a watchlist
 router.get('/user/watchlist/:id', verifyToken, fetchWatchlist);
+
+// fetch similiar movies
+router.get('/:id/similar', fetchSimilarMovies);
 
 // search for movies with a name or year
 router.get('/search', searchMovie);

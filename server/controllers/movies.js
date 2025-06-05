@@ -40,6 +40,19 @@ export const fetchMovieDetail = async (req, res) => {
   }
 };
 
+// fetch similiar movies
+export const fetchSimilarMovies = async (req, res) => {
+  const movieId = req.params.id;
+
+  try {
+    const similarMovies = await fetchData(`movie/${movieId}/similar?language=en-US&page=1`);
+
+    return res.status(200).json(similarMovies);
+  } catch (err) {
+    return res.status(400).json({ message: 'An error occured', error: err.message });
+  }
+};
+
 // search movie by name or year
 export const searchMovie = async (req, res) => {
   const { name, year } = req.query;
