@@ -8,6 +8,7 @@ import {
   fetchMovieDetail,
   fetchPopularMovies,
   fetchSimilarMovies,
+  fetchTopRatedMovies,
   fetchTrendingMovie,
   fetchWatchlist,
   fetchWatchLists,
@@ -58,6 +59,9 @@ router.get('/popular-movies', fetchPopularMovies);
 
 // fetch trending movie
 router.get('/trending', fetchTrendingMovie);
+
+// fetch top rated movies
+router.get('/top-rated', fetchTopRatedMovies);
 
 // fetch a movie details by it's Id
 router.get('/:id', fetchMovieDetail);

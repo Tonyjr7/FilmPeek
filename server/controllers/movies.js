@@ -19,9 +19,22 @@ export const fetchPopularMovies = async (req, res) => {
 // fetch trending movie
 export const fetchTrendingMovie = async (req, res) => {
   try {
-    const movie = await fetchData('trending/movie/day?language=en-US');
+    const movies = await fetchData('trending/movie/day?language=en-US');
+    const simpleResponse = simplifyMovieData(movies.results);
 
-    return res.status(200).json(movie);
+    return res.status(200).json(simpleResponse);
+  } catch (err) {
+    return res.status(500).json({ message: 'An error occured', error: err.message });
+  }
+};
+
+// fetch top rated movies
+export const fetchTopRatedMovies = async (req, res) => {
+  try {
+    const movies = await fetchData('/movie/top_rated?language=en-US');
+    const simpleResponse = simplifyMovieData(movies.results);
+
+    return res.status(200).json(simpleResponse);
   } catch (err) {
     return res.status(500).json({ message: 'An error occured', error: err.message });
   }

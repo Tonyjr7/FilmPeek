@@ -4,6 +4,8 @@ export const simplifyMovieData = (movies) => {
     id: movie.id,
     title: movie.title || movie.original_title,
     poster_path: movie.poster_path,
+    overview: movie.overview,
+    backdrop_path: movie.backdrop_path,
   }));
 };
 

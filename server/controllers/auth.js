@@ -10,23 +10,21 @@ export const signupUsers = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    // Check if user already exists
     const lookUpUser = await User.findOne({ email });
 
     if (lookUpUser) {
       return res.status(400).json({ message: 'User with this email already existed' });
-    } else {
-      // Hash the password
-      const passwordHash = await hashedPassword(password);
-
-      // Create user with hashed password
-      const user = new User({ name, email, password: passwordHash });
-
-      // Save User
-      await user.save();
-
-      res.status(201).json({ message: 'User created successfully', user });
     }
+
+    const passwordHash = await hashedPassword(password);
+    const user = new User({ name, email, password: passwordHash });
+
+    await user.save();
+
+    // Convert to plain object and exclude password and __v
+    const { password: _, __v, createdAt, updatedAt, ...safeUser } = user.toObject();
+
+    res.status(201).json({ message: 'User created successfully', user: safeUser });
   } catch (error) {
     res.status(500).json({ message: 'Failed to create user', error });
   }
@@ -52,6 +50,6 @@ export const signinUsers = async (req, res) => {
 
     res.status(200).json({ message: 'Login successful', token });
   } catch (error) {
-    res.status(500).json({ message: 'Login failed', error });
+    res.status(500).json({ message: 'Login failed', error: error.message });
   }
 };
