@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   HomeIcon,
   StarIcon,
-  UserCircleIcon,
+  BookmarkIcon,
   ArrowRightOnRectangleIcon,
   MagnifyingGlassIcon,
 } from '@heroicons/react/24/solid';
@@ -11,6 +11,17 @@ import {
 export default function Header() {
   const [activeLink, setActiveLink] = useState('home');
   const [isScrolled, setIsScrolled] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Check login status on route change (including initial load)
+  useEffect(() => {
+    setIsLoggedIn(!!localStorage.getItem('token'));
+  }, [location]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -25,6 +36,23 @@ export default function Header() {
       ? 'font-bold text-amber-500 flex items-center space-x-2 scale-110'
       : 'font-normal text-white text-lg hover:text-amber-200 flex items-center space-x-2';
   }
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchTerm.trim())}`);
+      setShowSearch(false);
+      setSearchTerm('');
+      setActiveLink('search');
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setIsLoggedIn(false);
+    setActiveLink('home');
+    navigate('/');
+  };
 
   const headerClasses = isScrolled
     ? 'bg-black bg-opacity-90 shadow-md backdrop-blur'
@@ -58,34 +86,61 @@ export default function Header() {
               <span>Favorites</span>
             </Link>
             <Link
-              to="/profile"
-              className={getLinkClasses(activeLink === 'profile')}
-              onClick={() => setActiveLink('profile')}
+              to="/watchlist"
+              className={getLinkClasses(activeLink === 'watchlist')}
+              onClick={() => setActiveLink('watchlist')}
             >
-              <UserCircleIcon className="w-5 h-5" />
-              <span>Profile</span>
+              <BookmarkIcon className="w-5 h-5" />
+              <span>WatchList</span>
             </Link>
-            <Link
-              to="/search"
-              className={getLinkClasses(activeLink === 'search')}
-              onClick={() => setActiveLink('search')}
-            >
-              <MagnifyingGlassIcon className="w-5 h-5" />
-              <span>Search</span>
-            </Link>
+
+            {/* Search Icon and Input */}
+            <div className="relative flex items-center">
+              <button
+                onClick={() => setShowSearch((prev) => !prev)}
+                className="flex items-center space-x-2 text-white hover:text-yellow-400 focus:outline-none"
+              >
+                <MagnifyingGlassIcon className="w-5 h-5" />
+              </button>
+
+              <form
+                onSubmit={handleSearchSubmit}
+                className={`overflow-hidden transition-all duration-300 ml-2 ${
+                  showSearch ? 'w-64 opacity-100' : 'w-0 opacity-0'
+                }`}
+              >
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full px-3 py-1 rounded-md text-black outline-none"
+                />
+              </form>
+            </div>
           </nav>
         </div>
 
-        {/* Right: Login */}
+        {/* Right: Login or Logout */}
         <div className="hidden md:block">
-          <Link
-            to="/login"
-            className={getLinkClasses(activeLink === 'login')}
-            onClick={() => setActiveLink('login')}
-          >
-            <ArrowRightOnRectangleIcon className="w-5 h-5" />
-            <span>Login</span>
-          </Link>
+          {isLoggedIn ? (
+            <button
+              onClick={handleLogout}
+              className="font-normal text-white text-lg hover:text-amber-200 flex items-center space-x-2"
+            >
+              <ArrowRightOnRectangleIcon className="w-5 h-5" />
+              <span>Logout</span>
+            </button>
+          ) : (
+            <Link
+              to="/login"
+              className={getLinkClasses(activeLink === 'login')}
+              onClick={() => setActiveLink('login')}
+            >
+              <ArrowRightOnRectangleIcon className="w-5 h-5" />
+              <span>Login</span>
+            </Link>
+          )}
         </div>
 
         {/* Mobile Nav */}
@@ -105,19 +160,29 @@ export default function Header() {
             <StarIcon className="w-5 h-5" />
           </Link>
           <Link
-            to="/profile"
-            className={getLinkClasses(activeLink === 'profile')}
-            onClick={() => setActiveLink('profile')}
+            to="/watchlist"
+            className={getLinkClasses(activeLink === 'watchlist')}
+            onClick={() => setActiveLink('watchlist')}
           >
-            <UserCircleIcon className="w-5 h-5" />
+            <BookmarkIcon className="w-5 h-5" />
           </Link>
-          <Link
-            to="/login"
-            className={getLinkClasses(activeLink === 'login')}
-            onClick={() => setActiveLink('login')}
-          >
-            <ArrowRightOnRectangleIcon className="w-5 h-5" />
-          </Link>
+          {isLoggedIn ? (
+            <button
+              onClick={handleLogout}
+              className="font-normal text-white hover:text-amber-200 flex items-center space-x-2"
+            >
+              <ArrowRightOnRectangleIcon className="w-5 h-5" />
+              <span className="sr-only">Logout</span>
+            </button>
+          ) : (
+            <Link
+              to="/login"
+              className={getLinkClasses(activeLink === 'login')}
+              onClick={() => setActiveLink('login')}
+            >
+              <ArrowRightOnRectangleIcon className="w-5 h-5" />
+            </Link>
+          )}
         </nav>
       </div>
     </header>

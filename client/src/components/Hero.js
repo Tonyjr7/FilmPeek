@@ -11,9 +11,13 @@ const Hero = () => {
     const fetchPopular = async () => {
       const res = await fetch(`http://192.168.0.129:5000/api/movie/trending`);
       const data = await res.json();
-      setMovie(data.results[0]);
+      setMovie(data[0]);
     };
-    fetchPopular();
+    try {
+      fetchPopular();
+    } catch (err) {
+      console.log(err);
+    }
   }, []);
 
   const handleMoreInfoClick = async (movieId) => {
