@@ -53,7 +53,7 @@ export default function SignupPage() {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              className="w-full p-3 text-black border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
               placeholder="Your name"
               required
             />
@@ -71,7 +71,7 @@ export default function SignupPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              className="w-full p-3  text-black border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
               placeholder="you@example.com"
               required
             />
@@ -89,7 +89,7 @@ export default function SignupPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              className="w-full p-3  text-black border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
               placeholder="Create a password"
               required
             />
