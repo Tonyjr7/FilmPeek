@@ -28,7 +28,7 @@ router.post('/user/favorites/add', verifyToken, addMovieToFavorite);
 router.get('/user/favorites', verifyToken, fetchFavoriteMovies);
 
 // remove a movie from favorites
-router.delete('/user/favorites/delete/:id', verifyToken, removeMovieFromFavorite);
+router.post('/user/favorites/remove', verifyToken, removeMovieFromFavorite);
 
 // create a watchlist
 router.post('/user/watchlist/create-watchlist', verifyToken, createWatchlist);

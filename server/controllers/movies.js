@@ -111,7 +111,7 @@ export const addMovieToFavorite = async (req, res) => {
 
 // remove a movie from favorite
 export const removeMovieFromFavorite = async (req, res) => {
-  const movieId = req.params.id;
+  const movieId = req.body.movieId;
 
   if (!movieId) {
     return res.status(400).json({ message: 'Please include a movie' });
