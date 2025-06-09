@@ -1,17 +1,24 @@
 import { useEffect, useState } from 'react';
 import { BookmarkIcon, InformationCircleIcon } from '@heroicons/react/24/solid';
 import MovieModal from './MovieModal';
+import WatchlistModal from './WatchlistModal';
+
+import {
+  getTrendingMovies,
+  getMovieDetails,
+  getSimilarMovies,
+} from '../utils/api';
 
 const Hero = () => {
   const [movie, setMovie] = useState(null);
   const [selectedMovie, setSelectedMovie] = useState(null);
   const [relatedMovies, setRelatedMovies] = useState([]);
+  const [showWatchlistModal, setShowWatchlistModal] = useState(false);
 
   useEffect(() => {
     const fetchPopular = async () => {
-      const res = await fetch(`http://192.168.0.129:5000/api/movie/trending`);
-      const data = await res.json();
-      setMovie(data[0]);
+      const res = await getTrendingMovies();
+      setMovie(res.data[0]);
     };
     try {
       fetchPopular();
@@ -22,15 +29,11 @@ const Hero = () => {
 
   const handleMoreInfoClick = async (movieId) => {
     try {
-      const res = await fetch(`http://192.168.0.129:5000/api/movie/${movieId}`);
-      const data = await res.json();
-      setSelectedMovie(data);
+      const res = await getMovieDetails(movieId);
+      setSelectedMovie(res.data);
 
-      const relatedRes = await fetch(
-        `http://192.168.0.129:5000/api/movie/${movieId}/similar`,
-      );
-      const relatedData = await relatedRes.json();
-      setRelatedMovies(relatedData.results || []);
+      const relatedRes = await getSimilarMovies(movieId);
+      setRelatedMovies(relatedRes.data.results || []);
     } catch (err) {
       console.error('Failed to fetch movie details or similar movies:', err);
     }
@@ -39,6 +42,15 @@ const Hero = () => {
   const closeModal = () => {
     setSelectedMovie(null);
     setRelatedMovies([]);
+  };
+
+  // Handle selecting a watchlist from modal
+  const handleSelectWatchlist = (watchlistId) => {
+    // TODO: Add logic to add this movie to the selected watchlist via API
+
+    alert(`Add movie ${movie.id} to watchlist ${watchlistId}`);
+
+    setShowWatchlistModal(false);
   };
 
   if (!movie) return null;
@@ -61,7 +73,10 @@ const Hero = () => {
               {movie.overview}
             </p>
             <div className="mt-6 flex flex-row flex-wrap gap-2">
-              <button className="flex-shrink flex items-center gap-2 px-4 py-2 text-sm md:text-lg h-[60px] rounded-md bg-amber-500 text-black font-semibold hover:bg-amber-400 transition">
+              <button
+                onClick={() => setShowWatchlistModal(true)}
+                className="flex-shrink flex items-center gap-2 px-4 py-2 text-sm md:text-lg h-[60px] rounded-md bg-amber-500 text-black font-semibold hover:bg-amber-400 transition"
+              >
                 <BookmarkIcon className="md:w-8 md:h-8 h-5" />
                 <span>Add To Watchlist</span>
               </button>
@@ -76,6 +91,14 @@ const Hero = () => {
           </div>
         </div>
       </div>
+
+      {showWatchlistModal && (
+        <WatchlistModal
+          onClose={() => setShowWatchlistModal(false)}
+          onSelectWatchlist={handleSelectWatchlist}
+          movieId={movie.id} // add this line
+        />
+      )}
 
       {selectedMovie && (
         <MovieModal

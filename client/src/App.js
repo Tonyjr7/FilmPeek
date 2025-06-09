@@ -7,6 +7,8 @@ import LoginPage from './pages/Login';
 import SignupPage from './pages/SignUp';
 import FavoritesPage from './pages/FavoritesPage';
 import WatchListPage from './pages/WatchlistPage';
+import WatchlistDetailsPage from './pages/WatchListDetailPage';
+import Profile from './pages/ProfilePage';
 
 function App() {
   return (
@@ -18,6 +20,8 @@ function App() {
           <Route path="/search" element={<SearchPage />} />
           <Route path="/favorites" element={<FavoritesPage />} />
           <Route path="/watchlist" element={<WatchListPage />} />
+          <Route path="/watchlist/:id" element={<WatchlistDetailsPage />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
         </Routes>

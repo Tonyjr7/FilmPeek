@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import MovieModal from './MovieModal';
+import { getMovieDetails, getSimilarMovies } from '../utils/api';
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -38,15 +39,11 @@ export default function SearchPage() {
 
   const handleMoreInfoClick = async (movieId) => {
     try {
-      const res = await fetch(`http://192.168.0.129:5000/api/movie/${movieId}`);
-      const data = await res.json();
-      setSelectedMovie(data);
+      const res = await getMovieDetails(movieId);
+      setSelectedMovie(res.data);
 
-      const relatedRes = await fetch(
-        `http://192.168.0.129:5000/api/movie/${movieId}/similar`,
-      );
-      const relatedData = await relatedRes.json();
-      setRelatedMovies(relatedData.results || []);
+      const relatedRes = await getSimilarMovies(movieId);
+      setRelatedMovies(relatedRes.data.results || []);
     } catch (err) {
       console.error('Failed to fetch movie details or similar movies:', err);
     }

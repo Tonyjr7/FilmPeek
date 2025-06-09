@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
+import { signUp } from '../utils/api';
 
 export default function SignupPage() {
   const [email, setEmail] = useState('');
@@ -21,10 +22,7 @@ export default function SignupPage() {
 
     setLoading(true);
     try {
-      const response = await axios.post(
-        'http://192.168.0.129:5000/api/auth/signup',
-        { name, email, password },
-      );
+      const response = await signUp(name, email, password);
       navigate('/login');
     } catch (err) {
       setError(err.response?.data?.message || 'Signup failed');

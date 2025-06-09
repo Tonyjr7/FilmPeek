@@ -10,6 +10,10 @@ function Home() {
         endpoint="http://192.168.0.129:5000/api/movie/popular-movies"
       />
       <MovieCardRow
+        title="Recommended For You"
+        endpoint="http://192.168.0.129:5000/api/movie/user/recommendations"
+      />
+      <MovieCardRow
         title="Trending Movies"
         endpoint="http://192.168.0.129:5000/api/movie/trending"
       />

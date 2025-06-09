@@ -1,16 +1,23 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import MovieModal from './MovieModal';
+import { getMovieDetails, getSimilarMovies } from '../utils/api';
 
 export default function MovieCardRow({ title, endpoint }) {
   const [movies, setMovies] = useState([]);
   const [selectedMovie, setSelectedMovie] = useState(null);
   const [relatedMovies, setRelatedMovies] = useState([]);
 
+  const auth_token = localStorage.getItem('token');
+
   useEffect(() => {
     const fetchMovies = async () => {
       try {
-        const res = await axios.get(endpoint);
+        const res = await axios.get(endpoint, {
+          headers: {
+            Authorization: `Bearer ${auth_token}`,
+          },
+        });
         setMovies(res.data || []);
       } catch (err) {
         console.error('Error loading movies:', err);
@@ -21,15 +28,11 @@ export default function MovieCardRow({ title, endpoint }) {
 
   const handleMoreInfoClick = async (movieId) => {
     try {
-      const res = await fetch(`http://192.168.0.129:5000/api/movie/${movieId}`);
-      const data = await res.json();
-      setSelectedMovie(data);
+      const res = await getMovieDetails(movieId);
+      setSelectedMovie(res.data);
 
-      const relatedRes = await fetch(
-        `http://192.168.0.129:5000/api/movie/${movieId}/similar`,
-      );
-      const relatedData = await relatedRes.json();
-      setRelatedMovies(relatedData.results || []);
+      const relatedRes = await getSimilarMovies(movieId);
+      setRelatedMovies(relatedRes.data.results || []);
     } catch (err) {
       console.error('Failed to fetch movie details or similar movies:', err);
     }

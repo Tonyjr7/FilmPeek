@@ -21,13 +21,8 @@ const Footer = () => {
               </a>
             </li>
             <li>
-              <a href="#" className="hover:text-white transition">
-                Trending
-              </a>
-            </li>
-            <li>
-              <a href="#" className="hover:text-white transition">
-                Watchlist
+              <a href="/profile" className="hover:text-white transition">
+                Profile
               </a>
             </li>
             <li>

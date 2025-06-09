@@ -1,35 +1,38 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
+import Toast from '../components/Toast';
+import { signIn } from '../utils/api';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [toast, setToast] = useState(null); // toast state {message, type}
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
 
     if (!email || !password) {
-      setError('Please fill in both fields');
+      setToast({ message: 'Please fill in both fields', type: 'error' });
       return;
     }
 
     setLoading(true);
     try {
-      const response = await axios.post(
-        'http://192.168.0.129:5000/api/auth/signin',
-        { email, password },
-      );
+      const response = await signIn(email, password);
       const token = response.data.token;
       localStorage.setItem('token', token);
-      navigate('/');
+
+      setToast({ message: 'Login successful', type: 'success' });
+      setTimeout(() => navigate('/'), 1500); // navigate after toast
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed');
+      setToast({
+        message: err.response?.data?.message || 'Login failed',
+        type: 'error',
+      });
     } finally {
       setLoading(false);
     }
@@ -41,7 +44,7 @@ export default function LoginPage() {
         <h2 className="text-3xl font-bold mb-6 text-center text-gray-800">
           Login to Your Account
         </h2>
-        {error && <p className="mb-4 text-red-500 text-center">{error}</p>}
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label
@@ -100,6 +103,16 @@ export default function LoginPage() {
           </Link>
         </p>
       </div>
+
+      {/* Toast component rendered here */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          duration={3000}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }
