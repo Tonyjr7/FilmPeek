@@ -6,6 +6,7 @@ import {
   deleteWatchlist,
   fetchFavoriteMovies,
   fetchMovieDetail,
+  fetchMovieRecommendations,
   fetchPopularMovies,
   fetchSimilarMovies,
   fetchTopRatedMovies,
@@ -62,6 +63,9 @@ router.get('/trending', fetchTrendingMovie);
 
 // fetch top rated movies
 router.get('/top-rated', fetchTopRatedMovies);
+
+// movie recommendations
+router.get('/user/recommendations', verifyToken, fetchMovieRecommendations);
 
 // fetch a movie details by it's Id
 router.get('/:id', fetchMovieDetail);

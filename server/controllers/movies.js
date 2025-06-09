@@ -2,6 +2,8 @@ import fetchData from '../services/api.js';
 import { simplifyMovieData, simplifyMovieDetails } from '../services/data_extractor.js';
 
 import User from '../models/user.js';
+import { getRandomElement } from '../services/randomizer.js';
+import cache from '../services/cache.js';
 
 // fetch popular movies - Top 10
 export const fetchPopularMovies = async (req, res) => {
@@ -13,6 +15,30 @@ export const fetchPopularMovies = async (req, res) => {
     return res.status(200).json(top10PopularMovies);
   } catch (err) {
     return res.status(400).json({ message: 'An error occured', err });
+  }
+};
+
+// recommendation system
+export const fetchMovieRecommendations = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const userFavorites = user.favoriteMovies;
+
+    const randomFavoriteMovie = getRandomElement(userFavorites);
+
+    const recommendedMovies = await fetchData(
+      `movie/${randomFavoriteMovie}/recommendations?language=en-US`
+    );
+
+    const simpleResponse = simplifyMovieData(recommendedMovies.results);
+
+    return res.status(200).json(simpleResponse);
+  } catch (err) {
+    return res.status(500).json({ message: 'An error occured', error: err.message });
   }
 };
 
@@ -57,8 +83,15 @@ export const fetchMovieDetail = async (req, res) => {
 export const fetchSimilarMovies = async (req, res) => {
   const movieId = req.params.id;
 
+  const cacheKey = `similar_${movieId}`;
+  const cached = cache.get(cacheKey);
+  if (cached) return res.status(200).json(cached);
+
   try {
+    console.time('fetchSimilarMovies');
     const similarMovies = await fetchData(`movie/${movieId}/similar?language=en-US&page=1`);
+    console.timeEnd('fetchSimilarMovies');
+    cache.set(cacheKey, similarMovies);
 
     return res.status(200).json(similarMovies);
   } catch (err) {
@@ -160,7 +193,7 @@ export const createWatchlist = async (req, res) => {
     }
 
     // check if watchlist exists
-    const exist = user.watchLists.some((list) => list.name === watchListName);
+    const exist = user.watchLists.some((list) => list.name === watchlistName);
     if (exist) {
       return res.status(400).json({ message: 'You already have this watchlist' });
     }
@@ -169,7 +202,10 @@ export const createWatchlist = async (req, res) => {
     user.watchLists.push({ name: watchlistName, movies: [] });
     await user.save();
 
-    return res.status(201).json({ message: 'Watchlist created' });
+    return res.status(201).json({
+      message: 'Watchlist created',
+      watchlist: user.watchLists[user.watchLists.length - 1],
+    });
   } catch (err) {
     return res.status(500).json({ message: 'An error occured', error: err.message });
   }

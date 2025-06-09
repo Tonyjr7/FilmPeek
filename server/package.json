@@ -4,7 +4,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --detectOpenHandles --verbose",
     "format": "prettier --write \"**/*.{js,json,ts}\"",
     "start": "node server"
   },
@@ -21,7 +21,28 @@
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.16.0",
     "mongoose": "^8.15.1",
+    "node-cache": "^5.1.2",
     "nodemailer": "^7.0.3",
     "nodemon": "^3.1.10"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.20.0",
+    "@babel/preset-env": "^7.20.0",
+    "axios": "^1.9.0",
+    "babel-jest": "^29.7.0",
+    "jest": "^29.7.0"
+  },
+  "jest": {
+    "extensionsToTreatAsEsm": [
+      ".jsx",
+      ".ts",
+      ".tsx"
+    ],
+    "moduleNameMapper": {
+      "^(\\.{1,2}/.*)\\.js$": "$1"
+    },
+    "transform": {
+      "^.+\\.(js|jsx|ts|tsx)$": "babel-jest"
+    }
   }
 }

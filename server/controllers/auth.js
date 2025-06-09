@@ -53,3 +53,19 @@ export const signinUsers = async (req, res) => {
     res.status(500).json({ message: 'Login failed', error: error.message });
   }
 };
+
+//fetch user profile
+export const fetchUserProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const { password: _, __v, _id, createdAt, updatedAt, ...safeUser } = user.toObject();
+
+    return res.status(200).json(safeUser);
+  } catch (err) {
+    return res.status(500).json({ message: 'An error occured', error: err.message });
+  }
+};
