@@ -24,6 +24,8 @@ app.use((req, res) => {
   res.status(404).json({ message: 'Page not found!' });
 });
 
+export default app;
+
 // connectDB()
 //   .then(() => {
 //     app.listen(PORT, () => {
