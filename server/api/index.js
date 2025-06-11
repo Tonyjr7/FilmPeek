@@ -3,6 +3,7 @@ import app from '../server.js';
 import connectDB from '../config/db.config.js';
 
 let isConnected = false;
+const expressHandler = serverless(app); // moved outside
 
 const handler = async (req, res) => {
   if (!isConnected) {
@@ -10,7 +11,6 @@ const handler = async (req, res) => {
     isConnected = true;
   }
 
-  const expressHandler = serverless(app);
   return expressHandler(req, res);
 };
 
