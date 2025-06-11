@@ -24,12 +24,12 @@ app.use((req, res) => {
   res.status(404).json({ message: 'Page not found!' });
 });
 
-connectDB()
-  .then(() => {
-    app.listen(PORT, () => {
-      console.log(`Server running on: http://127.0.0.1:${PORT}`);
-    });
-  })
-  .catch((err) => {
-    console.error('Failed to connect to the database:', err);
-  });
+// connectDB()
+//   .then(() => {
+//     app.listen(PORT, () => {
+//       console.log(`Server running on: http://127.0.0.1:${PORT}`);
+//     });
+//   })
+//   .catch((err) => {
+//     console.error('Failed to connect to the database:', err);
+//   });
