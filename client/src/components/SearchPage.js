@@ -24,9 +24,9 @@ export default function SearchPage() {
     const delayDebounce = setTimeout(() => {
       setLoading(true);
       fetch(
-        `http://192.168.0.129:5000/api/movie/search?name=${encodeURIComponent(
-          searchTerm,
-        )}`,
+        `${
+          process.env.REACT_APP_BASE_URL
+        }/movie/search?name=${encodeURIComponent(searchTerm)}`,
       )
         .then((res) => res.json())
         .then((data) => setSearchResults(Array.isArray(data) ? data : []))
