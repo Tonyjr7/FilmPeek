@@ -17,7 +17,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/movie', moviesRoutes);
 
 app.get('/', async (req, res) => {
-  res.status(200).json({ message: 'Home!!!' });
+  res.status(200).json({ message: 'FilmPeek' });
 });
 
 app.use((req, res) => {
