@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { userProfile } from '../utils/api';
 
 function Profile() {
   const [name, setName] = useState('');
@@ -7,14 +8,10 @@ function Profile() {
   const token = localStorage.getItem('token');
 
   useEffect(() => {
-    axios
-      .get('http://192.168.0.129:5000/api/auth/user/profile', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => {
-        setName(res.data.name);
-        setProfilePicture(res.data.profilePicture);
-      });
+    userProfile(token).then((res) => {
+      setName(res.data.name);
+      setProfilePicture(res.data.profilePicture);
+    });
   }, []);
 
   return (

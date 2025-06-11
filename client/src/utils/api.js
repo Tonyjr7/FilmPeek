@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: process.env.BASE_URL,
+  baseURL: process.env.REACT_APP_BASE_URL,
 });
 
 api.interceptors.request.use((config) => {
@@ -70,3 +70,8 @@ export const signUp = (name, email, password) =>
 
 export const signIn = (email, password) =>
   api.post('auth/signin', { email, password });
+
+export const userProfile = (token) =>
+  api.get('auth/user/profile', {
+    headers: { Authorization: `Bearer ${token}` },
+  });

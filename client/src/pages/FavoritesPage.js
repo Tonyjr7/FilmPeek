@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import MovieModal from '../components/MovieModal';
+import {
+  fetchFavorites,
+  getMovieDetails,
+  getSimilarMovies,
+} from '../utils/api';
 
 export default function FavoritesPage() {
   const [favorites, setFavorites] = useState([]); // will hold full movie details
@@ -12,24 +17,15 @@ export default function FavoritesPage() {
   const auth_token = localStorage.getItem('token');
 
   useEffect(() => {
-    const fetchFavorites = async () => {
+    const fetchFavoriteMovies = async () => {
       try {
         // 1. Get array of favorite movie IDs
-        const res = await axios.get(
-          'http://192.168.0.129:5000/api/movie/user/favorites',
-          {
-            headers: {
-              Authorization: `Bearer ${auth_token}`,
-            },
-          },
-        );
+        const res = await fetchFavorites(auth_token);
 
         const favoriteIds = res.data.data; // e.g. [575265, 1001414]
 
         // 2. Fetch details for each favorite movie ID in parallel
-        const detailsRequests = favoriteIds.map((id) =>
-          axios.get(`http://192.168.0.129:5000/api/movie/${id}`),
-        );
+        const detailsRequests = favoriteIds.map((id) => getMovieDetails(id));
 
         const detailsResponses = await Promise.all(detailsRequests);
 
@@ -45,20 +41,16 @@ export default function FavoritesPage() {
       }
     };
 
-    fetchFavorites();
+    fetchFavoriteMovies();
   }, [auth_token]);
 
   const handleMoreInfoClick = async (movieId) => {
     try {
-      const res = await fetch(`http://192.168.0.129:5000/api/movie/${movieId}`);
-      const data = await res.json();
-      setSelectedMovie(data);
+      const res = await getMovieDetails(movieId);
+      setSelectedMovie(res.data);
 
-      const relatedRes = await fetch(
-        `http://192.168.0.129:5000/api/movie/${movieId}/similar`,
-      );
-      const relatedData = await relatedRes.json();
-      setRelatedMovies(relatedData.results || []);
+      const relatedRes = await getSimilarMovies(movieId);
+      setRelatedMovies(relatedRes.data.results || []);
     } catch (err) {
       console.error('Failed to fetch movie details or similar movies:', err);
     }
