@@ -2,6 +2,7 @@ import { BookmarkIcon, XMarkIcon, PlusIcon } from '@heroicons/react/24/solid';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { getWatchlists, createWatchlist, addToWatchList } from '../utils/api';
+import Toast from './Toast';
 
 export default function WatchlistModal({
   onClose,
@@ -15,6 +16,7 @@ export default function WatchlistModal({
   const [newName, setNewName] = useState('');
   const [creating, setCreating] = useState(false);
   const [addingMovie, setAddingMovie] = useState(false);
+  const [toast, setToast] = useState(null); // toast state {message, type}
 
   useEffect(() => {
     const fetchWatchlists = async () => {
@@ -45,7 +47,10 @@ export default function WatchlistModal({
       setNewName('');
       setAddingNew(false);
     } catch {
-      alert('Error creating watchlist');
+      setToast({
+        message: 'Error creating watchlist watchlist',
+        type: 'error',
+      });
     } finally {
       setCreating(false);
     }
@@ -53,17 +58,17 @@ export default function WatchlistModal({
 
   const handleAddMovie = async (watchlistId) => {
     if (!movieId) {
-      alert('No movie selected');
+      setToast({ message: 'No movie selected', type: 'error' });
       return;
     }
     setAddingMovie(true);
     try {
       await addToWatchList(movieId, watchlistId, auth_token);
-      alert('Movie added to watchlist!');
+      setToast({ message: 'Movie added to wtahclist', type: 'success' });
       onSelectWatchlist(watchlistId);
       onClose();
     } catch (err) {
-      console.error(err);
+      setToast({ message: 'An error occured', type: 'error' });
     } finally {
       setAddingMovie(false);
     }
@@ -138,6 +143,15 @@ export default function WatchlistModal({
           </button>
         )}
       </div>
+      {/* Toast component rendered here */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          duration={3000}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }

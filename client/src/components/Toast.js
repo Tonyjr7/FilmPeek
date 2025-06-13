@@ -26,7 +26,7 @@ export default function Toast({
 
   return (
     <div
-      className={`fixed bottom-5 right-5 px-4 py-3 rounded border-2 bg-white bg-opacity-30 backdrop-blur-md shadow-md ${colors[type]} animate-fade-in`}
+      className={`fixed bottom-5 right-5 px-4 py-3 rounded border-2 bg-white backdrop-blur-md shadow-md ${colors[type]} animate-fade-in`}
       style={{ minWidth: '200px', zIndex: 9999 }}
       role="alert"
       aria-live="assertive"
