@@ -29,6 +29,12 @@ code {
   display: none;
 }
 
+.yt-embed {
+  width: 100%;
+  overflow: hidden;
+  pointer-events: none;
+}
+
 * {
   margin: 0;
   padding: 0;

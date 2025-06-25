@@ -75,3 +75,5 @@ export const userProfile = (token) =>
   api.get('auth/user/profile', {
     headers: { Authorization: `Bearer ${token}` },
   });
+
+export const movieTrailer = (movieId) => api.get(`movie/trailer/${movieId}`);

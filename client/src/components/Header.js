@@ -158,6 +158,15 @@ export default function Header() {
               <HomeIcon className="w-5 h-5" />
             </Link>
             <Link
+              to="/search"
+              className={getLinkClasses(activeLink === 'search')}
+              onClick={() => {
+                setActiveLink('search');
+              }}
+            >
+              <MagnifyingGlassIcon className="w-5 h-5" />
+            </Link>
+            <Link
               to="/favorites"
               className={getLinkClasses(activeLink === 'favorites')}
               onClick={() => setActiveLink('favorites')}

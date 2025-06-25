@@ -8,10 +8,17 @@ function Profile() {
   const token = localStorage.getItem('token');
 
   useEffect(() => {
-    userProfile(token).then((res) => {
-      setName(res.data.name);
-      setProfilePicture(res.data.profilePicture);
-    });
+    const fetchProfile = async () => {
+      try {
+        const res = await userProfile(token);
+        setName(res.data.name);
+        setProfilePicture(res.data.profilePicture);
+      } catch (err) {
+        console.log(err.data);
+      }
+    };
+
+    fetchProfile();
   }, []);
 
   return (
