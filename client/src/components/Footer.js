@@ -26,8 +26,8 @@ const Footer = () => {
               </a>
             </li>
             <li>
-              <a href="#" className="hover:text-white transition">
-                About
+              <a href="/search" className="hover:text-white transition">
+                Search
               </a>
             </li>
           </ul>
