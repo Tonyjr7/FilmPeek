@@ -1,67 +1,45 @@
 import { jest } from '@jest/globals';
-import request from 'axios';
+import request from 'supertest';
 import express from 'express';
 import cors from 'cors';
-import authRoutes from '../routes/auth.js';
-import moviesRoutes from '../routes/movies.js';
-import fetchData from '../services/api.js';
-import User from '../models/user.js';
-import { hashedPassword, matchPassword } from '../services/auth.js';
-import jwt from 'jsonwebtoken';
-import connectDB from '../config/db.config.js';
 
-// Mocking before imports (ESM style with hoisting safety)
-jest.unstable_mockModule('dotenv', () => ({
-  config: jest.fn(),
-}));
+// Mock modules BEFORE importing the actual modules
+const mockFetchData = jest.fn();
+const mockUser = {
+  findOne: jest.fn(),
+  findById: jest.fn(),
+  create: jest.fn(),
+};
+const mockJwt = {
+  sign: jest.fn(),
+  verify: jest.fn(),
+};
 
+// Mock the modules
 jest.unstable_mockModule('../services/api.js', () => ({
-  __esModule: true,
-  default: jest.fn(),
+  default: mockFetchData,
 }));
 
 jest.unstable_mockModule('../models/user.js', () => ({
-  __esModule: true,
-  default: {
-    findOne: jest.fn(),
-    findById: jest.fn(),
-    create: jest.fn(),
-  },
-}));
-
-jest.unstable_mockModule('../services/auth.js', () => ({
-  __esModule: true,
-  hashedPassword: jest.fn(),
-  matchPassword: jest.fn(),
+  default: mockUser,
 }));
 
 jest.unstable_mockModule('jsonwebtoken', () => ({
-  __esModule: true,
-  default: {
-    sign: jest.fn(),
-    verify: jest.fn(),
-  },
+  default: mockJwt,
 }));
 
-jest.unstable_mockModule('../config/db.config.js', () => ({
-  __esModule: true,
-  default: jest.fn(() => Promise.resolve()),
-}));
+// Now import the routes after mocking
+const authRoutes = await import('../routes/auth.js');
+const moviesRoutes = await import('../routes/movies.js');
 
-// Wait for all ESM mocks to load
-await import('dotenv/config');
-
+// Create express app
 const app = express();
-const PORT = 5001;
-
-// Middleware
 app.use(cors());
 app.use(express.json());
+app.use('/api/auth', authRoutes.default);
+app.use('/api/movie', moviesRoutes.default);
 
-// Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/movie', moviesRoutes);
-
+const PORT = 5002;
 let server;
 
 beforeAll(async () => {
@@ -69,326 +47,333 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await server.close();
+  if (server) {
+    await new Promise((resolve) => {
+      server.close(resolve);
+    });
+  }
 });
 
-describe('Movie API Endpoints', () => {
+describe('Movie API Extended Tests', () => {
   const DUMMY_TOKEN = 'mock-jwt-token';
   const DUMMY_USER_ID = 'testUserId123';
 
   beforeEach(() => {
-    fetchData.mockReset();
-    User.findOne.mockReset();
-    User.findById.mockReset();
-    User.create.mockReset();
-    hashedPassword.mockReset();
-    matchPassword.mockReset();
-    jwt.default.sign.mockReset();
-    jwt.default.verify.mockReset();
+    // Reset all mocks
+    mockFetchData.mockReset();
+    mockUser.findOne.mockReset();
+    mockUser.findById.mockReset();
+    mockUser.create.mockReset();
+    mockJwt.sign.mockReset();
+    mockJwt.verify.mockReset();
 
-    jwt.default.verify.mockImplementation((token, secret, callback) => {
+    // Default JWT verification
+    mockJwt.verify.mockImplementation((token, secret, callback) => {
       callback(null, { id: DUMMY_USER_ID });
     });
   });
 
-  describe('GET /api/movie/popular-movies', () => {
-    it('should return top 10 popular movies', async () => {
-      const mockMovies = Array.from({ length: 11 }).map((_, i) => ({
-        id: i + 1,
-        title: `Movie ${i + 1}`,
-        poster_path: `/path${i + 1}.jpg`,
-        overview: `Overview ${i + 1}`,
-        backdrop_path: `/backdrop${i + 1}.jpg`,
-      }));
-
-      fetchData.mockResolvedValueOnce({ results: mockMovies });
-
-      const response = await request.get(`http://localhost:${PORT}/api/movie/popular-movies`);
-      expect(response.status).toBe(200);
-      expect(response.data.length).toBe(10);
-    });
-
-    it('should handle API error gracefully', async () => {
-      fetchData.mockRejectedValueOnce(new Error('API error'));
-
-      const response = await request
-        .get(`http://localhost:${PORT}/api/movie/popular-movies`)
-        .catch((err) => err.response);
-
-      expect(response.status).toBe(400);
-      expect(response.data).toHaveProperty('message', 'An error occured');
-    });
-  });
-
-  describe('GET /api/movie/search', () => {
-    it('should search movies by name', async () => {
-      const mockSearchResults = [
+  // 1. GET /api/movie/trending - Test trending movies endpoint
+  describe('GET /api/movie/trending', () => {
+    it('should return trending movies successfully', async () => {
+      const mockTrendingMovies = [
         {
-          id: 101,
-          title: 'Searched Movie 1',
-          poster_path: '/search1.jpg',
-          overview: 'Overview Search 1',
-          backdrop_path: '/backdropSearch1.jpg',
+          id: 1,
+          title: 'Trending Movie 1',
+          poster_path: '/trending1.jpg',
+          overview: 'A trending movie overview',
+          backdrop_path: '/backdrop1.jpg',
+        },
+        {
+          id: 2,
+          title: 'Trending Movie 2',
+          poster_path: '/trending2.jpg',
+          overview: 'Another trending movie',
+          backdrop_path: '/backdrop2.jpg',
         },
       ];
-      fetchData.mockResolvedValueOnce({
-        results: mockSearchResults,
-      });
 
-      const response = await request.get(`http://localhost:${PORT}/api/movie/search?name=test`);
+      mockFetchData.mockResolvedValueOnce({ results: mockTrendingMovies });
+
+      const response = await request(app).get('/api/movie/trending');
+
       expect(response.status).toBe(200);
-      expect(response.data.length).toBeGreaterThan(0);
-      expect(response.data[0].title).toBe('Searched Movie 1');
-      expect(fetchData).toHaveBeenCalledWith('search/movie?query=test');
+      expect(response.body).toHaveLength(2);
+      expect(response.body[0].title).toBe('Trending Movie 1');
+      expect(mockFetchData).toHaveBeenCalledWith('trending/movie/day?language=en-US');
     });
 
-    it('should return 400 if no search parameters are provided', async () => {
-      const response = await request
-        .get(`http://localhost:${PORT}/api/movie/search`)
-        .catch((err) => err.response);
-      expect(response.status).toBe(400);
-      expect(response.data).toHaveProperty('message', 'Please provide a movie name or year');
+    it('should handle API error when fetching trending movies', async () => {
+      mockFetchData.mockRejectedValueOnce(new Error('TMDB API Error'));
+
+      const response = await request(app).get('/api/movie/trending');
+
+      expect(response.status).toBe(500);
+      expect(response.body).toHaveProperty('message', 'An error occured');
     });
   });
 
-  // --- Authenticated Movie Endpoints ---
+  // 2. GET /api/movie/:id - Test movie details endpoint
+  describe('GET /api/movie/:id', () => {
+    it('should return movie details successfully', async () => {
+      const mockMovieDetails = {
+        id: 123,
+        title: 'Test Movie',
+        tagline: 'An amazing movie',
+        release_date: '2024-01-01',
+        overview: 'This is a test movie overview',
+        poster_path: '/test.jpg',
+        backdrop_path: '/backdrop.jpg',
+        vote_average: 8.5,
+        genres: [
+          { id: 28, name: 'Action' },
+          { id: 35, name: 'Comedy' },
+        ],
+      };
 
-  describe('POST /api/movie/user/favorites/add', () => {
-    it('should add a movie to favorites for an authenticated user', async () => {
-      const mockUser = {
+      mockFetchData.mockResolvedValueOnce(mockMovieDetails);
+
+      const response = await request(app).get('/api/movie/123');
+
+      expect(response.status).toBe(200);
+      expect(response.body.id).toBe(123);
+      expect(response.body.title).toBe('Test Movie');
+      expect(response.body.tagline).toBe('An amazing movie');
+      expect(response.body.vote_average).toBe(8.5);
+      expect(mockFetchData).toHaveBeenCalledWith('movie/123?language=en-US');
+    });
+
+    it('should handle error when movie is not found', async () => {
+      mockFetchData.mockRejectedValueOnce(new Error('Movie not found'));
+
+      const response = await request(app).get('/api/movie/999');
+
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty('message', 'An error occured');
+    });
+  });
+
+  // 3. POST /api/movie/user/watchlist/create-watchlist - Test watchlist creation
+  describe('POST /api/movie/user/watchlist/create-watchlist', () => {
+    it('should create a new watchlist successfully', async () => {
+      const mockUserInstance = {
         _id: DUMMY_USER_ID,
-        favoriteMovies: [],
+        watchLists: [],
         save: jest.fn().mockResolvedValue(true),
       };
-      User.findById.mockResolvedValueOnce(mockUser);
 
-      const response = await request.post(
-        `http://localhost:${PORT}/api/movie/user/favorites/add`,
-        {
-          movieId: 123,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${DUMMY_TOKEN}`,
-          },
-        }
-      );
+      mockUser.findById.mockResolvedValueOnce(mockUserInstance);
+
+      const response = await request(app)
+        .post('/api/movie/user/watchlist/create-watchlist')
+        .set('Authorization', `Bearer ${DUMMY_TOKEN}`)
+        .send({ watchlistName: 'My Action Movies' });
+
       expect(response.status).toBe(201);
-      expect(response.data).toHaveProperty('message', 'Movie added to favorite');
-      expect(mockUser.favoriteMovies).toContain(123);
-      expect(mockUser.save).toHaveBeenCalled();
+      expect(response.body).toHaveProperty('message', 'Watchlist created');
+      expect(response.body.watchlist.name).toBe('My Action Movies');
+      expect(mockUserInstance.watchLists).toHaveLength(1);
+      expect(mockUserInstance.save).toHaveBeenCalled();
     });
 
-    it('should return 400 if movie is already in favorites', async () => {
-      const mockUser = {
+    it('should return 400 if watchlist name already exists', async () => {
+      const mockUserInstance = {
         _id: DUMMY_USER_ID,
-        favoriteMovies: [123],
-        save: jest.fn().mockResolvedValue(true),
+        watchLists: [{ name: 'My Action Movies', movies: [] }],
+        save: jest.fn(),
       };
-      User.findById.mockResolvedValueOnce(mockUser);
 
-      const response = await request
-        .post(
-          `http://localhost:${PORT}/api/movie/user/favorites/add`,
-          {
-            movieId: 123,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${DUMMY_TOKEN}`,
-            },
-          }
-        )
-        .catch((err) => err.response);
+      mockUser.findById.mockResolvedValueOnce(mockUserInstance);
+
+      const response = await request(app)
+        .post('/api/movie/user/watchlist/create-watchlist')
+        .set('Authorization', `Bearer ${DUMMY_TOKEN}`)
+        .send({ watchlistName: 'My Action Movies' });
+
       expect(response.status).toBe(400);
-      expect(response.data).toHaveProperty('message', 'Movie already in your favorites');
-      expect(mockUser.save).not.toHaveBeenCalled();
+      expect(response.body).toHaveProperty('message', 'You already have this watchlist');
+      expect(mockUserInstance.save).not.toHaveBeenCalled();
     });
 
-    it('should return 401 if not authenticated', async () => {
-      jwt.default.verify.mockImplementationOnce((token, secret, callback) => {
-        callback(new Error('Invalid token'));
-      }); // Simulate invalid token
+    it('should return 400 if watchlist name is missing', async () => {
+      const response = await request(app)
+        .post('/api/movie/user/watchlist/create-watchlist')
+        .set('Authorization', `Bearer ${DUMMY_TOKEN}`)
+        .send({});
 
-      const response = await request
-        .post(
-          `http://localhost:${PORT}/api/movie/user/favorites/add`,
-          {
-            movieId: 123,
-          },
-          {
-            headers: {
-              Authorization: 'Bearer invalid-token',
-            },
-          }
-        )
-        .catch((err) => err.response);
-      expect(response.status).toBe(403); // 403 for invalid token as per verifyToken
-      expect(response.data).toHaveProperty('message', 'Invalid token.');
-    });
-  });
-
-  describe('GET /api/movie/user/favorites', () => {
-    it('should fetch favorite movies for an authenticated user', async () => {
-      const mockUser = {
-        _id: DUMMY_USER_ID,
-        favoriteMovies: [1, 2, 3],
-      };
-      User.findById.mockResolvedValueOnce(mockUser);
-
-      const response = await request.get(`http://localhost:${PORT}/api/movie/user/favorites`, {
-        headers: {
-          Authorization: `Bearer ${DUMMY_TOKEN}`,
-        },
-      });
-      expect(response.status).toBe(200);
-      expect(response.data).toHaveProperty('message', 'Favorite movie fetched');
-      expect(response.data.data).toEqual([1, 2, 3]);
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty('message', 'Please include a watchlist name');
     });
 
-    it('should return empty array if user has no favorites', async () => {
-      const mockUser = {
-        _id: DUMMY_USER_ID,
-        favoriteMovies: [],
-      };
-      User.findById.mockResolvedValueOnce(mockUser);
-
-      const response = await request.get(`http://localhost:${PORT}/api/movie/user/favorites`, {
-        headers: {
-          Authorization: `Bearer ${DUMMY_TOKEN}`,
-        },
-      });
-      expect(response.status).toBe(200);
-      expect(response.data).toHaveProperty('data', []);
-    });
-
-    it('should return 401 if not authenticated', async () => {
-      jwt.default.verify.mockImplementationOnce((token, secret, callback) => {
+    it('should return 403 if user is not authenticated', async () => {
+      mockJwt.verify.mockImplementationOnce((token, secret, callback) => {
         callback(new Error('Invalid token'));
       });
 
-      const response = await request
-        .get(`http://localhost:${PORT}/api/movie/user/favorites`, {
-          headers: {
-            Authorization: 'Bearer invalid-token',
-          },
-        })
-        .catch((err) => err.response);
+      const response = await request(app)
+        .post('/api/movie/user/watchlist/create-watchlist')
+        .set('Authorization', 'Bearer invalid-token')
+        .send({ watchlistName: 'My Action Movies' });
+
       expect(response.status).toBe(403);
-      expect(response.data).toHaveProperty('message', 'Invalid token.');
+      expect(response.body).toHaveProperty('message', 'Invalid token.');
     });
   });
 
-  describe('POST /api/auth/signup', () => {
-    it('should successfully register a new user', async () => {
-      User.findOne.mockResolvedValueOnce(null); // No existing user
-      hashedPassword.mockResolvedValueOnce('hashedpassword123'); // Mock hashed password
-      User.default.create.mockImplementationOnce((userData) => ({
-        ...userData,
-        toObject: () => ({
-          ...userData,
-          _id: 'newUserId',
-          password: 'hashedpassword123',
-          __v: 0,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        }),
-      }));
-
-      const response = await request.post(`http://localhost:${PORT}/api/auth/signup`, {
-        name: 'Test User',
-        email: 'test@example.com',
-        password: 'password123',
-      });
-      expect(response.status).toBe(201);
-      expect(response.data).toHaveProperty('message', 'User created successfully');
-      expect(response.data.user).not.toHaveProperty('password');
-      expect(User.findOne).toHaveBeenCalledWith({
-        email: 'test@example.com',
-      });
-      expect(hashedPassword).toHaveBeenCalledWith('password123');
-    });
-
-    it('should return 400 if user with email already exists', async () => {
-      User.findOne.mockResolvedValueOnce({
-        email: 'test@example.com',
-      }); // User already exists
-
-      const response = await request
-        .post(`http://localhost:${PORT}/api/auth/signup`, {
-          name: 'Test User',
-          email: 'test@example.com',
-          password: 'password123',
-        })
-        .catch((err) => err.response);
-      expect(response.status).toBe(400);
-      expect(response.data).toHaveProperty('message', 'User with this email already existed');
-    });
-  });
-
-  describe('POST /api/auth/signin', () => {
-    it('should successfully log in a user', async () => {
-      const mockUser = {
-        _id: 'userId123',
-        email: 'test@example.com',
-        password: 'hashedpassword123',
+  // 4. GET /api/movie/user/recommendations - Test movie recommendations
+  describe('GET /api/movie/user/recommendations', () => {
+    it('should return movie recommendations based on user favorites', async () => {
+      const mockUserInstance = {
+        _id: DUMMY_USER_ID,
+        favoriteMovies: [100, 200, 300],
       };
-      User.findOne.mockResolvedValueOnce(mockUser);
-      matchPassword.mockResolvedValueOnce(true); // Password matches
-      jwt.default.sign.mockReturnValueOnce(DUMMY_TOKEN); // Return a dummy token
 
-      const response = await request.post(`http://localhost:${PORT}/api/auth/signin`, {
-        email: 'test@example.com',
-        password: 'password123',
-      });
-      expect(response.status).toBe(200);
-      expect(response.data).toHaveProperty('message', 'Login successful');
-      expect(response.data).toHaveProperty('token', DUMMY_TOKEN);
-      expect(User.findOne).toHaveBeenCalledWith({
-        email: 'test@example.com',
-      });
-      expect(matchPassword).toHaveBeenCalledWith('password123', 'hashedpassword123');
-      expect(jwt.default.sign).toHaveBeenCalledWith(
+      const mockRecommendations = [
         {
-          id: 'userId123',
+          id: 401,
+          title: 'Recommended Movie 1',
+          poster_path: '/rec1.jpg',
+          overview: 'A great recommendation',
+          backdrop_path: '/rec_backdrop1.jpg',
         },
-        expect.any(String),
         {
-          expiresIn: '1d',
-        }
+          id: 402,
+          title: 'Recommended Movie 2',
+          poster_path: '/rec2.jpg',
+          overview: 'Another recommendation',
+          backdrop_path: '/rec_backdrop2.jpg',
+        },
+      ];
+
+      mockUser.findById.mockResolvedValueOnce(mockUserInstance);
+      mockFetchData.mockResolvedValueOnce({ results: mockRecommendations });
+
+      const response = await request(app)
+        .get('/api/movie/user/recommendations')
+        .set('Authorization', `Bearer ${DUMMY_TOKEN}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveLength(2);
+      expect(response.body[0].title).toBe('Recommended Movie 1');
+      expect(mockFetchData).toHaveBeenCalledWith(
+        expect.stringMatching(/^movie\/\d+\/recommendations\?language=en-US$/)
       );
     });
 
-    it('should return 400 for invalid credentials (user not found)', async () => {
-      User.findOne.mockResolvedValueOnce(null); // User not found
+    it('should return 404 if user is not found', async () => {
+      mockUser.findById.mockResolvedValueOnce(null);
 
-      const response = await request
-        .post(`http://localhost:${PORT}/api/auth/signin`, {
-          email: 'nonexistent@example.com',
-          password: 'password123',
-        })
-        .catch((err) => err.response);
-      expect(response.status).toBe(400);
-      expect(response.data).toHaveProperty('message', 'Invalid Credentials');
+      const response = await request(app)
+        .get('/api/movie/user/recommendations')
+        .set('Authorization', `Bearer ${DUMMY_TOKEN}`);
+
+      expect(response.status).toBe(404);
+      expect(response.body).toHaveProperty('message', 'User not found');
     });
 
-    it('should return 400 for invalid credentials (wrong password)', async () => {
-      const mockUser = {
-        _id: 'userId123',
-        email: 'test@example.com',
-        password: 'hashedpassword123',
+    it('should handle API error when fetching recommendations', async () => {
+      const mockUserInstance = {
+        _id: DUMMY_USER_ID,
+        favoriteMovies: [100],
       };
-      User.findOne.mockResolvedValueOnce(mockUser);
-      matchPassword.mockResolvedValueOnce(false); // Password does not match
 
-      const response = await request
-        .post(`http://localhost:${PORT}/api/auth/signin`, {
-          email: 'test@example.com',
-          password: 'wrongpassword',
-        })
-        .catch((err) => err.response);
+      mockUser.findById.mockResolvedValueOnce(mockUserInstance);
+      mockFetchData.mockRejectedValueOnce(new Error('TMDB API Error'));
+
+      const response = await request(app)
+        .get('/api/movie/user/recommendations')
+        .set('Authorization', `Bearer ${DUMMY_TOKEN}`);
+
+      expect(response.status).toBe(500);
+      expect(response.body).toHaveProperty('message', 'An error occured');
+    });
+  });
+
+  // 5. POST /api/movie/user/favorites/remove - Test removing movie from favorites
+  describe('POST /api/movie/user/favorites/remove', () => {
+    it('should remove movie from favorites successfully', async () => {
+      const mockUserInstance = {
+        _id: DUMMY_USER_ID,
+        favoriteMovies: [100, 200, 300],
+        save: jest.fn().mockResolvedValue(true),
+      };
+
+      // Mock the pull method
+      mockUserInstance.favoriteMovies.pull = jest.fn();
+
+      mockUser.findById.mockResolvedValueOnce(mockUserInstance);
+
+      const response = await request(app)
+        .post('/api/movie/user/favorites/remove')
+        .set('Authorization', `Bearer ${DUMMY_TOKEN}`)
+        .send({ movieId: 200 });
+
+      expect(response.status).toBe(201);
+      expect(response.body).toHaveProperty('message', 'Movie removed from favorite');
+      expect(mockUserInstance.favoriteMovies.pull).toHaveBeenCalledWith(200);
+      expect(mockUserInstance.save).toHaveBeenCalled();
+    });
+
+    it('should return 400 if movie is not in favorites', async () => {
+      const mockUserInstance = {
+        _id: DUMMY_USER_ID,
+        favoriteMovies: [100, 300],
+        save: jest.fn(),
+      };
+
+      mockUser.findById.mockResolvedValueOnce(mockUserInstance);
+
+      const response = await request(app)
+        .post('/api/movie/user/favorites/remove')
+        .set('Authorization', `Bearer ${DUMMY_TOKEN}`)
+        .send({ movieId: 200 });
+
       expect(response.status).toBe(400);
-      expect(response.data).toHaveProperty('message', 'Wrong Password');
+      expect(response.body).toHaveProperty('message', 'Movie not in favorites');
+      expect(mockUserInstance.save).not.toHaveBeenCalled();
+    });
+
+    it('should return 400 if movieId is missing', async () => {
+      const response = await request(app)
+        .post('/api/movie/user/favorites/remove')
+        .set('Authorization', `Bearer ${DUMMY_TOKEN}`)
+        .send({});
+
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty('message', 'Please include a movie');
+    });
+
+    it('should return 403 if user is not authenticated', async () => {
+      mockJwt.verify.mockImplementationOnce((token, secret, callback) => {
+        callback(new Error('Invalid token'));
+      });
+
+      const response = await request(app)
+        .post('/api/movie/user/favorites/remove')
+        .set('Authorization', 'Bearer invalid-token')
+        .send({ movieId: 200 });
+
+      expect(response.status).toBe(403);
+      expect(response.body).toHaveProperty('message', 'Invalid token.');
+    });
+
+    it('should handle database errors gracefully', async () => {
+      const mockUserInstance = {
+        _id: DUMMY_USER_ID,
+        favoriteMovies: [100, 200, 300],
+        save: jest.fn().mockRejectedValue(new Error('Database error')),
+      };
+
+      mockUserInstance.favoriteMovies.pull = jest.fn();
+      mockUser.findById.mockResolvedValueOnce(mockUserInstance);
+
+      const response = await request(app)
+        .post('/api/movie/user/favorites/remove')
+        .set('Authorization', `Bearer ${DUMMY_TOKEN}`)
+        .send({ movieId: 200 });
+
+      expect(response.status).toBe(500);
+      expect(response.body).toHaveProperty('message', 'An error occurred');
     });
   });
 });

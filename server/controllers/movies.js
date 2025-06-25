@@ -338,9 +338,25 @@ export const fetchWatchLists = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
+    console.time('fetchwatchlist');
     const watchlists = user.watchLists;
+    console.timeEnd('fetchwatchlist');
 
     return res.status(200).json({ message: 'Watchlists fetched', watchlists });
+  } catch (err) {
+    return res.status(500).json({ message: 'An error occured', error: err.message });
+  }
+};
+
+// fetch movie trailer id
+
+export const fetchMovieTrailer = async (req, res) => {
+  const movieId = req.params.id;
+
+  try {
+    const trailerID = await fetchData(`movie/${movieId}/videos`);
+
+    return res.status(200).json({ message: trailerID.results[0].key });
   } catch (err) {
     return res.status(500).json({ message: 'An error occured', error: err.message });
   }

@@ -15,7 +15,7 @@ const verifyToken = (req, res, next) => {
 
   jwt.verify(token, SECRET_KEY, (err, decoded) => {
     if (err) {
-      return res.status(403).json({ message: 'Invalid token.' });
+      return res.status(403).json({ message: 'You need to be logged in' });
     }
 
     req.userId = decoded.id;

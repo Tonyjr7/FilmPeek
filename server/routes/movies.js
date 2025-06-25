@@ -13,6 +13,7 @@ import {
   fetchTrendingMovie,
   fetchWatchlist,
   fetchWatchLists,
+  fetchMovieTrailer,
   removeMovieFromFavorite,
   removeMovieFromWatchlist,
   searchMovie,
@@ -21,6 +22,9 @@ import {
 import verifyToken from '../services/verifyToken.js';
 
 const router = express.Router();
+
+// fetch movie trailer
+router.get('/trailer/:id', fetchMovieTrailer);
 
 // save a favorite movie
 router.post('/user/favorites/add', verifyToken, addMovieToFavorite);
