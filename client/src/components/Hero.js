@@ -20,6 +20,7 @@ const Hero = () => {
   const [showWatchlistModal, setShowWatchlistModal] = useState(false);
   const [showTrailer, setShowTrailer] = useState(false);
   const [player, setPlayer] = useState(null);
+  const [isLoadingModal, setIsLoadingModal] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -92,6 +93,7 @@ const Hero = () => {
   }, [selectedMovie, showWatchlistModal, player]);
 
   const handleMoreInfoClick = async (movieId) => {
+    setIsLoadingModal(true);
     try {
       const res = await getMovieDetails(movieId);
       setSelectedMovie(res.data);
@@ -99,6 +101,8 @@ const Hero = () => {
       setRelatedMovies(relatedRes.data.results || []);
     } catch (err) {
       console.error('Failed to fetch movie details:', err);
+    } finally {
+      setIsLoadingModal(false);
     }
   };
 
@@ -147,6 +151,11 @@ const Hero = () => {
 
   return (
     <>
+      {isLoadingModal && (
+        <div className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center">
+          <div className="h-10 w-10 border-4 border-white border-t-red-500 rounded-full animate-spin" />
+        </div>
+      )}
       <div className="relative h-[90vh] w-full bg-black text-white">
         {showTrailer && movie.trailerKey ? (
           <>

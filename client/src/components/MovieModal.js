@@ -113,7 +113,7 @@ export default function MovieModal({
     handlePlayTrailer();
     setTimeout(() => {
       unmuteVideo(); // ensure iframe is loaded
-    }, 5000);
+    }, 2000);
   };
 
   const handleToggleFavorite = async (movieId) => {
@@ -172,24 +172,19 @@ export default function MovieModal({
             )}
           </div>
 
-          <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 to-transparent p-6 sm:p-8">
+          <div className="relative bottom-0 left-0 w-full bg-gradient-to-t from-black/80 to-transparent p-6 sm:p-8">
             <h2 className="text-xl sm:text-3xl font-bold text-white mb-4">
               {movie.title}
             </h2>
-            <div className="flex items-center gap-6">
+
+            <div className="flex items-center gap-4 sm:gap-6 sm:flex-wrap">
               <button
                 onClick={handlePlay}
                 className="flex items-center gap-2 px-4 py-2 text-sm md:text-lg h-[48px] sm:h-[60px] rounded-md bg-red-600 text-white font-semibold hover:bg-red-500 transition"
               >
                 ▶ Play Trailer
               </button>
-              <button
-                onClick={() => setShowWatchlistModal(true)}
-                className="flex items-center gap-2 px-4 py-2 text-sm md:text-lg h-[48px] sm:h-[60px] rounded-md bg-amber-500 text-black font-semibold hover:bg-amber-400 transition"
-              >
-                <BookmarkIcon className="w-5 h-5 md:w-8 md:h-8" />
-                <span>Add To Watchlist</span>
-              </button>
+
               <button
                 onClick={() => handleToggleFavorite(movie.id)}
                 className={`flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-full transition ${
@@ -199,6 +194,16 @@ export default function MovieModal({
                 }`}
               >
                 <StarIcon className="w-5 h-5 md:w-6 md:h-6" />
+              </button>
+            </div>
+
+            <div className="mt-4 w-full">
+              <button
+                onClick={() => setShowWatchlistModal(true)}
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 text-sm md:text-lg h-[48px] sm:h-[60px] rounded-md bg-amber-500 text-black font-semibold hover:bg-amber-400 transition"
+              >
+                <BookmarkIcon className="w-5 h-5 md:w-6 md:h-6" />
+                <span>Add To Watchlist</span>
               </button>
             </div>
           </div>
