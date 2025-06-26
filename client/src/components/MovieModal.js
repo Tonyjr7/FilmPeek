@@ -1,4 +1,10 @@
-import { BookmarkIcon, XMarkIcon, StarIcon } from '@heroicons/react/24/solid';
+import {
+  BookmarkIcon,
+  XMarkIcon,
+  StarIcon,
+  EyeIcon,
+  PlayIcon,
+} from '@heroicons/react/24/solid';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import WatchlistModal from './WatchlistModal';
@@ -116,6 +122,10 @@ export default function MovieModal({
     }, 2000);
   };
 
+  const handlePlayMovie = (movieId) => {
+    navigate(`/watch/${movieId}`);
+  };
+
   const handleToggleFavorite = async (movieId) => {
     try {
       if (isFavorite) {
@@ -177,12 +187,20 @@ export default function MovieModal({
               {movie.title}
             </h2>
 
-            <div className="flex items-center gap-4 sm:gap-6 sm:flex-wrap">
+            <div className="flex items-center gap-4 sm:gap-3 sm:flex-wrap">
               <button
-                onClick={handlePlay}
+                onClick={() => handlePlayMovie(movie.id)}
                 className="flex items-center gap-2 px-4 py-2 text-sm md:text-lg h-[48px] sm:h-[60px] rounded-md bg-red-600 text-white font-semibold hover:bg-red-500 transition"
               >
-                ▶ Play Trailer
+                <PlayIcon className="w-5 h-5 md:w-6 md:h-6" />
+                <span>Play</span>
+              </button>
+              <button
+                onClick={handlePlay}
+                className="flex items-center gap-2 px-4 py-2 text-sm md:text-lg h-[48px] sm:h-[60px] rounded-md bg-blue-600 text-white font-semibold hover:bg-red-500 transition"
+              >
+                <EyeIcon className="w-5 h-5 md:w-6 md:h-6" />
+                <span>Peek Movie</span>
               </button>
 
               <button
