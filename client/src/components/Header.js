@@ -71,7 +71,7 @@ export default function Header() {
           {/* Left: Logo and Nav with flex-grow */}
           <div className="flex items-center space-x-6 flex-grow">
             <Link to="/" className="mb-2">
-              <img src="filmpeek.png" width="150" alt="Filmpeek Logo" />
+              <img src="/filmpeek.png" width="150" alt="Filmpeek Logo" />
             </Link>
             <nav className="hidden md:flex space-x-6 items-center justify-center">
               <Link
