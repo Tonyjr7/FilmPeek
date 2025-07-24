@@ -9,27 +9,17 @@ function Home() {
   const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
-    let didRespond = false;
-
     const wakeServer = async () => {
       try {
         await axios.get('https://filmpeek.onrender.com/');
-        didRespond = true;
-        setShowSplash(false);
+        setShowSplash(false); // only hide after response
       } catch (err) {
-        console.error('Backend still sleeping...');
+        console.error('Backend still sleeping... retrying in 2s');
+        setTimeout(wakeServer, 2000); // retry after 2 seconds
       }
     };
 
     wakeServer();
-
-    const timeout = setTimeout(() => {
-      if (!didRespond) {
-        setShowSplash(false); // don't wait forever
-      }
-    }, 3000);
-
-    return () => clearTimeout(timeout);
   }, []);
 
   return (
@@ -40,23 +30,27 @@ function Home() {
         </div>
       )}
 
-      <Hero />
-      <MovieCardRow
-        title="Top 10 Popular Movies"
-        endpoint={`${BASEURL}/movie/popular-movies`}
-      />
-      <MovieCardRow
-        title="Recommended For You"
-        endpoint={`${BASEURL}/movie/user/recommendations`}
-      />
-      <MovieCardRow
-        title="Trending Movies"
-        endpoint={`${BASEURL}/movie/trending`}
-      />
-      <MovieCardRow
-        title="Top Rated Movies"
-        endpoint={`${BASEURL}/movie/top-rated`}
-      />
+      {!showSplash && (
+        <>
+          <Hero />
+          <MovieCardRow
+            title="Top 10 Popular Movies"
+            endpoint={`${BASEURL}/movie/popular-movies`}
+          />
+          <MovieCardRow
+            title="Recommended For You"
+            endpoint={`${BASEURL}/movie/user/recommendations`}
+          />
+          <MovieCardRow
+            title="Trending Movies"
+            endpoint={`${BASEURL}/movie/trending`}
+          />
+          <MovieCardRow
+            title="Top Rated Movies"
+            endpoint={`${BASEURL}/movie/top-rated`}
+          />
+        </>
+      )}
     </>
   );
 }
