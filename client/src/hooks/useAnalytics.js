@@ -2,7 +2,7 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 
-const GA_ID = 'G-G94VYLGJM0';
+const GA_ID = 'G-PR9T65FV9W';
 
 export default function useAnalytics() {
   const location = useLocation();
