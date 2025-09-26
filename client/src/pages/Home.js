@@ -9,27 +9,18 @@ function Home() {
   const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
-    let didRespond = false;
-
     const wakeServer = async () => {
       try {
-        await axios.get('https://filmpeek.onrender.com');
-        didRespond = true;
-        setShowSplash(false);
+        await axios.get('https://filmpeek-production.up.railway.app');
+        setShowSplash(false); // only hide splash once we get a response
       } catch (err) {
         console.error('Backend still sleeping...');
+        // optionally retry until it wakes
+        setTimeout(wakeServer, 2000); // retry every 2s if you want persistence
       }
     };
 
     wakeServer();
-
-    const timeout = setTimeout(() => {
-      if (!didRespond) {
-        setShowSplash(false); // don't wait forever
-      }
-    }, 3000);
-
-    return () => clearTimeout(timeout);
   }, []);
 
   return (
