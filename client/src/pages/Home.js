@@ -16,7 +16,6 @@ function Home() {
       } catch (err) {
         console.error('Backend still sleeping...');
         // optionally retry until it wakes
-        setTimeout(wakeServer, 2000); // retry every 2s if you want persistence
       }
     };
 
