@@ -13,7 +13,7 @@ function Home() {
 
     const wakeServer = async () => {
       try {
-        await axios.get('https://filmpeek-production.up.railway.app');
+        await axios.get('https://filmpeek.onrender.com');
         didRespond = true;
         setShowSplash(false);
       } catch (err) {
