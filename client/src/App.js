@@ -10,8 +10,10 @@ import WatchListPage from './pages/WatchlistPage';
 import WatchlistDetailsPage from './pages/WatchListDetailPage';
 import Profile from './pages/ProfilePage';
 import WatchMovie from './pages/watchMovie';
+import useAnalytics from '../hooks/useAnalytics';
 
 function App() {
+  useAnalytics();
   const location = useLocation();
   const isWatchPage = location.pathname.startsWith('/watch/');
 
