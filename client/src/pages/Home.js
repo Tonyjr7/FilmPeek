@@ -11,7 +11,7 @@ function Home() {
   useEffect(() => {
     const wakeServer = async () => {
       try {
-        await axios.get('https://filmpeek-production.up.railway.app');
+        await axios.get('https://filmpeek.onrender.com/api/movie/popular-movies');
         setShowSplash(false); // only hide splash once we get a response
       } catch (err) {
         console.error('Backend still sleeping...');
