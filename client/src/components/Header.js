@@ -6,6 +6,7 @@ import {
   BookmarkIcon,
   ArrowRightOnRectangleIcon,
   MagnifyingGlassIcon,
+  TvIcon,
 } from '@heroicons/react/24/solid';
 
 import Toast from './Toast'; // Make sure this path is correct
@@ -24,6 +25,11 @@ export default function Header() {
 
   useEffect(() => {
     setIsLoggedIn(!!localStorage.getItem('token'));
+    if (location.pathname === '/') setActiveLink('home');
+    else if (location.pathname.startsWith('/series')) setActiveLink('series');
+    else if (location.pathname.startsWith('/favorites')) setActiveLink('favorites');
+    else if (location.pathname.startsWith('/watchlist')) setActiveLink('watchlist');
+    else if (location.pathname.startsWith('/search')) setActiveLink('search');
   }, [location]);
 
   useEffect(() => {
@@ -81,6 +87,14 @@ export default function Header() {
               >
                 <HomeIcon className="w-5 h-5 mb-1" />
                 <span>Browse</span>
+              </Link>
+              <Link
+                to="/series"
+                className={getLinkClasses(activeLink === 'series')}
+                onClick={() => setActiveLink('series')}
+              >
+                <TvIcon className="w-5 h-5 mb-1" />
+                <span>TV Series</span>
               </Link>
               <Link
                 to="/favorites"
@@ -156,6 +170,13 @@ export default function Header() {
               onClick={() => setActiveLink('home')}
             >
               <HomeIcon className="w-5 h-5" />
+            </Link>
+            <Link
+              to="/series"
+              className={getLinkClasses(activeLink === 'series')}
+              onClick={() => setActiveLink('series')}
+            >
+              <TvIcon className="w-5 h-5" />
             </Link>
             <Link
               to="/search"

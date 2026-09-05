@@ -8,12 +8,15 @@ import {
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import WatchlistModal from './WatchlistModal';
+import RecommendationExplanation from './RecommendationExplanation';
 import {
   addToFavorite,
   addToWatchList,
   fetchFavorites,
   removeFromFavorite,
   movieTrailer,
+  seriesTrailer,
+  getSeriesSeasonDetails,
 } from '../utils/api';
 
 export default function MovieModal({
@@ -30,6 +33,32 @@ export default function MovieModal({
   const [player, setPlayer] = useState(null);
   const [trailerKey, setTrailerKey] = useState(null);
   const navigate = useNavigate();
+
+  const isTv = movie?.media_type === 'tv' || !!movie?.number_of_seasons;
+  const seasonsList = movie?.seasons?.filter((s) => s.season_number > 0) || [];
+  const defaultSeason = seasonsList.length > 0 ? seasonsList[0].season_number : 1;
+
+  const [selectedSeason, setSelectedSeason] = useState(defaultSeason);
+  const [selectedEpisode, setSelectedEpisode] = useState(1);
+  const [episodes, setEpisodes] = useState([]);
+  const [episodesLoading, setEpisodesLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isTv || !movie?.id) return;
+    const fetchEpisodes = async () => {
+      setEpisodesLoading(true);
+      try {
+        const res = await getSeriesSeasonDetails(movie.id, selectedSeason);
+        setEpisodes(res.data.episodes || []);
+      } catch (err) {
+        console.error('Failed to fetch season episodes:', err);
+        setEpisodes([]);
+      } finally {
+        setEpisodesLoading(false);
+      }
+    };
+    fetchEpisodes();
+  }, [isTv, movie?.id, selectedSeason]);
 
   useEffect(() => {
     const loadFavorites = async () => {
@@ -48,7 +77,8 @@ export default function MovieModal({
   const handlePlayTrailer = async () => {
     if (!movie?.id) return;
     try {
-      const trailerRes = await movieTrailer(movie.id);
+      const isTv = movie.media_type === 'tv' || !!movie.number_of_seasons;
+      const trailerRes = isTv ? await seriesTrailer(movie.id).catch(() => movieTrailer(movie.id)) : await movieTrailer(movie.id);
       const trailerKey = trailerRes.data.message;
       setTrailerKey(trailerKey);
       setShowTrailer(true);
@@ -122,8 +152,12 @@ export default function MovieModal({
     }, 2000);
   };
 
-  const handlePlayMovie = (movieId) => {
-    navigate(`/watch/${movieId}`);
+  const handlePlayMovie = (movieId, seasonNum = selectedSeason, epNum = selectedEpisode) => {
+    if (isTv) {
+      navigate(`/watch/tv/${movieId}?s=${seasonNum}&e=${epNum}`);
+    } else {
+      navigate(`/watch/${movieId}`);
+    }
   };
 
   const handleToggleFavorite = async (movieId) => {
@@ -229,6 +263,12 @@ export default function MovieModal({
           <div className="p-6 sm:p-8 mt-1">
             <div className="flex flex-col md:flex-row gap-6">
               <div className="md:w-2/3 space-y-4">
+                {movie.number_of_seasons && (
+                  <div className="flex gap-4 text-sm text-amber-400 font-semibold">
+                    <span>{movie.number_of_seasons} Season{movie.number_of_seasons > 1 ? 's' : ''}</span>
+                    {movie.number_of_episodes && <span>• {movie.number_of_episodes} Episodes</span>}
+                  </div>
+                )}
                 {movie.tagline && (
                   <h4 className="text-lg font-semibold text-gray-300 mt-6">
                     {movie.tagline}
@@ -250,6 +290,98 @@ export default function MovieModal({
                 </ul>
               </div>
             </div>
+
+            {/* Seasons & Episodes Section */}
+            {isTv && (
+              <div className="mt-8 border-t border-zinc-800 pt-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                  <h3 className="text-2xl font-bold text-white flex items-center gap-2">
+                    <span>Episodes</span>
+                    <span className="text-xs px-2 py-0.5 rounded bg-zinc-800 text-amber-400 font-medium">
+                      {episodes.length} Episodes
+                    </span>
+                  </h3>
+                  {seasonsList.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm text-gray-400 font-medium">Season:</label>
+                      <select
+                        value={selectedSeason}
+                        onChange={(e) => {
+                          setSelectedSeason(Number(e.target.value));
+                          setSelectedEpisode(1);
+                        }}
+                        className="bg-zinc-800 text-white font-semibold px-4 py-2 rounded-md border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer text-sm"
+                      >
+                        {seasonsList.map((s) => (
+                          <option key={s.id || s.season_number} value={s.season_number}>
+                            {s.name || `Season ${s.season_number}`} ({s.episode_count} eps)
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                </div>
+
+                {episodesLoading ? (
+                  <div className="py-10 text-center text-amber-400 animate-pulse">
+                    Loading season episodes...
+                  </div>
+                ) : episodes.length === 0 ? (
+                  <p className="text-gray-400 text-sm italic">No episodes available for this season.</p>
+                ) : (
+                  <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 no-scrollbar">
+                    {episodes.map((ep) => (
+                      <div
+                        key={ep.id}
+                        onClick={() => {
+                          setSelectedEpisode(ep.episode_number);
+                          handlePlayMovie(movie.id, selectedSeason, ep.episode_number);
+                        }}
+                        className="flex flex-col sm:flex-row gap-4 p-3 rounded-lg bg-zinc-900/80 hover:bg-zinc-800 transition cursor-pointer group border border-zinc-800 hover:border-amber-500/50"
+                      >
+                        <div className="relative w-full sm:w-44 h-28 flex-shrink-0 bg-zinc-800 rounded-md overflow-hidden">
+                          <img
+                            src={
+                              ep.still_path
+                                ? `https://image.tmdb.org/t/p/w300${ep.still_path}`
+                                : movie.backdrop_path
+                                ? `https://image.tmdb.org/t/p/w300${movie.backdrop_path}`
+                                : '/placeholder.png'
+                            }
+                            alt={ep.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                          />
+                          <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 flex items-center justify-center transition">
+                            <PlayIcon className="w-8 h-8 text-white opacity-80 group-hover:opacity-100 group-hover:scale-110 transition" />
+                          </div>
+                          <span className="absolute bottom-1 right-1 bg-black/80 px-1.5 py-0.5 text-[10px] font-semibold text-amber-400 rounded border border-amber-500/30">
+                            S{selectedSeason} E{ep.episode_number}
+                          </span>
+                        </div>
+                        <div className="flex-1 flex flex-col justify-center">
+                          <div className="flex items-center justify-between gap-2">
+                            <h4 className="text-base font-semibold text-white group-hover:text-amber-400 transition">
+                              {ep.episode_number}. {ep.name}
+                            </h4>
+                            {ep.runtime && (
+                              <span className="text-xs text-gray-400 whitespace-nowrap">
+                                {ep.runtime} min
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-400 line-clamp-2 mt-1 font-light leading-relaxed">
+                            {ep.overview || 'No overview available for this episode.'}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* AI-powered recommendation explanation */}
+            <RecommendationExplanation movie={movie} />
 
             {similarMovies?.length > 0 && (
               <div className="mt-10">

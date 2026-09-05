@@ -1,4 +1,5 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
+import './ai-features.css';
 import Header from './components/Header';
 import Home from './pages/Home';
 import Footer from './components/Footer';
@@ -10,6 +11,7 @@ import WatchListPage from './pages/WatchlistPage';
 import WatchlistDetailsPage from './pages/WatchListDetailPage';
 import Profile from './pages/ProfilePage';
 import WatchMovie from './pages/watchMovie';
+import SeriesPage from './pages/SeriesPage';
 import useAnalytics from './hooks/useAnalytics';
 
 function App() {
@@ -23,10 +25,12 @@ function App() {
       <main className="flex-grow">
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/series" element={<SeriesPage />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/favorites" element={<FavoritesPage />} />
           <Route path="/watchlist" element={<WatchListPage />} />
           <Route path="/watchlist/:id" element={<WatchlistDetailsPage />} />
+          <Route path="/watch/tv/:id" element={<WatchMovie isSeries={true} />} />
           <Route path="/watch/:id" element={<WatchMovie />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/login" element={<LoginPage />} />

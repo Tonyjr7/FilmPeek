@@ -77,3 +77,22 @@ export const userProfile = (token) =>
   });
 
 export const movieTrailer = (movieId) => api.get(`movie/trailer/${movieId}`);
+
+// TV Series endpoints
+export const getTrendingSeries = () => api.get('/series/trending');
+export const getPopularSeries = () => api.get('/series/popular-series');
+export const getTopRatedSeries = () => api.get('/series/top-rated');
+export const getSeriesDetails = (id) => api.get(`/series/${id}`);
+export const getSimilarSeries = (id) => api.get(`/series/${id}/similar`);
+export const seriesTrailer = (seriesId) => api.get(`series/trailer/${seriesId}`);
+export const searchSeries = (name) => api.get(`series/search?name=${encodeURIComponent(name)}`);
+export const getSeriesSeasonDetails = (id, seasonNumber) =>
+  api.get(`/series/${id}/season/${seasonNumber}`);
+
+// AI feature endpoints
+export const postAIMatch = (query) => api.post('/ai/match', { query });
+export const postAIExplain = (movieTitle, genres, overview) =>
+  api.post('/ai/explain', { movieTitle, genres, overview });
+
+
+
