@@ -31,6 +31,7 @@ jest.unstable_mockModule('jsonwebtoken', () => ({
 // Now import the routes after mocking
 const authRoutes = await import('../routes/auth.js');
 const moviesRoutes = await import('../routes/movies.js');
+const seriesRoutes = await import('../routes/series.js');
 
 // Create express app
 const app = express();
@@ -38,6 +39,7 @@ app.use(cors());
 app.use(express.json());
 app.use('/api/auth', authRoutes.default);
 app.use('/api/movie', moviesRoutes.default);
+app.use('/api/series', seriesRoutes.default);
 
 const PORT = 5002;
 let server;
@@ -216,7 +218,7 @@ describe('Movie API Extended Tests', () => {
         .send({ watchlistName: 'My Action Movies' });
 
       expect(response.status).toBe(403);
-      expect(response.body).toHaveProperty('message', 'Invalid token.');
+      expect(response.body).toHaveProperty('message', 'You need to be logged in');
     });
   });
 
@@ -354,7 +356,7 @@ describe('Movie API Extended Tests', () => {
         .send({ movieId: 200 });
 
       expect(response.status).toBe(403);
-      expect(response.body).toHaveProperty('message', 'Invalid token.');
+      expect(response.body).toHaveProperty('message', 'You need to be logged in');
     });
 
     it('should handle database errors gracefully', async () => {
@@ -374,6 +376,63 @@ describe('Movie API Extended Tests', () => {
 
       expect(response.status).toBe(500);
       expect(response.body).toHaveProperty('message', 'An error occurred');
+    });
+  });
+
+  // 6. GET /api/series/trending - Test trending TV series endpoint
+  describe('GET /api/series/trending', () => {
+    it('should return trending series successfully', async () => {
+      const mockTrendingSeries = [
+        {
+          id: 101,
+          name: 'Stranger Things',
+          poster_path: '/stranger.jpg',
+          overview: 'Sci-fi series overview',
+          backdrop_path: '/stranger_bg.jpg',
+          first_air_date: '2016-07-15',
+        },
+      ];
+
+      mockFetchData.mockResolvedValueOnce({ results: mockTrendingSeries });
+
+      const response = await request(app).get('/api/series/trending');
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveLength(1);
+      expect(response.body[0].title).toBe('Stranger Things');
+      expect(mockFetchData).toHaveBeenCalledWith('trending/tv/day?language=en-US');
+    });
+  });
+
+  // 7. GET /api/series/:id/season/:seasonNumber - Test series season details endpoint
+  describe('GET /api/series/:id/season/:seasonNumber', () => {
+    it('should return season episodes successfully', async () => {
+      const mockSeasonData = {
+        id: 1000,
+        season_number: 1,
+        name: 'Season 1',
+        overview: 'Season 1 overview',
+        episodes: [
+          {
+            id: 5001,
+            episode_number: 1,
+            name: 'Chapter One',
+            overview: 'Episode 1 overview',
+            still_path: '/ep1.jpg',
+            runtime: 50,
+          },
+        ],
+      };
+
+      mockFetchData.mockResolvedValueOnce(mockSeasonData);
+
+      const response = await request(app).get('/api/series/101/season/1');
+
+      expect(response.status).toBe(200);
+      expect(response.body.season_number).toBe(1);
+      expect(response.body.episodes).toHaveLength(1);
+      expect(response.body.episodes[0].name).toBe('Chapter One');
+      expect(mockFetchData).toHaveBeenCalledWith('tv/101/season/1?language=en-US');
     });
   });
 });
