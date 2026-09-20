@@ -8,6 +8,23 @@ const WatchMovie = ({ isSeries = false }) => {
   const episode = queryParams.get('e') || '1';
 
   const token = localStorage.getItem('token');
+  // Check token expiration
+  if (token) {
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      if (payload.exp && Date.now() >= payload.exp * 1000) {
+        localStorage.removeItem('token');
+        return (
+          <div className="h-screen bg-black text-white flex flex-col items-center justify-center text-center space-y-4">
+            <span className="text-6xl">😢</span>
+            <p className="text-lg">Your session has expired. Please log in again.</p>
+          </div>
+        );
+      }
+    } catch (e) {
+      console.error('Failed to decode token', e);
+    }
+  }
   const mediaType = isSeries || type === 'tv' ? 'tv' : 'movie';
 
   if (!token) {
