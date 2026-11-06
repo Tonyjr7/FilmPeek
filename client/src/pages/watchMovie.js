@@ -38,10 +38,12 @@ const WatchMovie = ({ isSeries = false }) => {
     );
   }
 
+  const mediaQuery = "?v=3.2.0&n=Filmpeek&o=https%3A%2F%2Ffilmpeek.vercel.app"
+
   const embedPath =
     mediaType === 'tv' ? `tv/${id}/${season}/${episode}` : `movie/${id}`;
 
-  const videoURL = `${process.env.REACT_APP_WATCH_URL}/${embedPath}?v=3.2.0&n=Filmpeek&o=https%3A%2F%2Ffilmpeek.vercel.app`;
+  const videoURL = `${process.env.REACT_APP_WATCH_URL}/${embedPath}`;
 
   return (
     <div className="h-screen w-full bg-black">
